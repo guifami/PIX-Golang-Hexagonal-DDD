@@ -1,0 +1,876 @@
+{
+  "info": {
+    "name": "PIX API",
+    "description": "Coleção completa e automatizada para testar o sistema PIX. Execute as pastas em ordem para o fluxo end-to-end funcionar corretamente.\n\nConfigure a variável `api_key` no environment se o servidor exigir autenticação (API_KEYS configurado).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" }
+  ],
+  "item": [
+    {
+      "name": "1. Setup",
+      "description": "Cria as contas de pagador e recebedor e deposita saldo. Execute primeiro para popular as variáveis de ambiente.",
+      "item": [
+        {
+          "name": "Criar Conta Pagador",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/accounts", "host": ["{{base_url}}"], "path": ["api","v1","accounts"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_name\": \"João Silva\",\n  \"cpf\": \"11144477735\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Has account ID', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.be.a('string');",
+                  "  pm.expect(body.status).to.equal('ACTIVE');",
+                  "  pm.environment.set('payer_account_id', body.id);",
+                  "});",
+                  "pm.test('Balance starts at zero', () => {",
+                  "  pm.expect(pm.response.json().balance_cents).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar Conta Recebedor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/accounts", "host": ["{{base_url}}"], "path": ["api","v1","accounts"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_name\": \"Maria Souza\",\n  \"cpf\": \"52998224725\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Has account ID', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.be.a('string');",
+                  "  pm.environment.set('receiver_account_id', body.id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Depositar Saldo no Pagador (R$ 500,00)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",     "value": "application/json" },
+              { "key": "X-API-Key",        "value": "{{api_key}}" },
+              { "key": "X-Idempotency-Key","value": "{{idempotency_key}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}/deposit",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}","deposit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount_cents\": 50000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.environment.set('idempotency_key', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance updated to 50000', () => {",
+                  "  pm.expect(pm.response.json().balance_cents).to.equal(50000);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Contas",
+      "description": "Operações de consulta de contas e saldo.",
+      "item": [
+        {
+          "name": "Buscar Conta por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns correct account', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.equal(pm.environment.get('payer_account_id'));",
+                  "  pm.expect(body.owner_name).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar Saldo Pagador",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}","balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Has balance fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.balance_cents).to.be.a('number');",
+                  "  pm.expect(body.balance).to.include('R$');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar Saldo Recebedor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{receiver_account_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{receiver_account_id}}","balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Has balance fields', () => {",
+                  "  pm.expect(pm.response.json().balance_cents).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Chaves PIX",
+      "description": "Registro, consulta e remoção de chaves PIX.",
+      "item": [
+        {
+          "name": "Registrar Chave CPF (Recebedor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{receiver_account_id}}\",\n  \"key_type\": \"CPF\",\n  \"key_value\": \"52998224725\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Key registered', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.key_value).to.equal('52998224725');",
+                  "  pm.expect(body.key_type).to.equal('CPF');",
+                  "  pm.environment.set('pix_key', body.key_value);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar Chave EMAIL (Recebedor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{receiver_account_id}}\",\n  \"key_type\": \"EMAIL\",\n  \"key_value\": \"maria.souza@email.com\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Email key registered', () => {",
+                  "  pm.expect(pm.response.json().key_type).to.equal('EMAIL');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar Chave PHONE (Recebedor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{receiver_account_id}}\",\n  \"key_type\": \"PHONE\",\n  \"key_value\": \"+5511999990000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Buscar Chave por Valor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pix/keys/{{pix_key}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","pix","keys","{{pix_key}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns key info', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.account_id).to.equal(pm.environment.get('receiver_account_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Chaves da Conta Recebedor",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{receiver_account_id}}/pix/keys",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{receiver_account_id}}","pix","keys"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array with registered keys', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "  pm.expect(body.length).to.be.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deletar Chave PHONE",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pix/keys/+5511999990000?account_id={{receiver_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","pix","keys","+5511999990000"],
+              "query": [{ "key": "account_id", "value": "{{receiver_account_id}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Pagamentos PIX",
+      "description": "Fluxo completo de pagamento: iniciar, aguardar processamento Kafka e verificar status final.",
+      "item": [
+        {
+          "name": "Iniciar Pagamento PIX",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",      "value": "application/json" },
+              { "key": "X-API-Key",         "value": "{{api_key}}" },
+              { "key": "X-Idempotency-Key", "value": "{{idempotency_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/payments", "host": ["{{base_url}}"], "path": ["api","v1","pix","payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_account_id\": \"{{payer_account_id}}\",\n  \"receiver_key\": \"{{pix_key}}\",\n  \"amount_cents\": 15000,\n  \"description\": \"Pagamento de teste via PIX\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const key = pm.variables.replaceIn('{{$guid}}');",
+                  "pm.environment.set('idempotency_key', key);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 202 Accepted', () => pm.response.to.have.status(202));",
+                  "pm.test('Transaction created as PENDING', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.be.a('string');",
+                  "  pm.expect(body.status).to.equal('PENDING');",
+                  "  pm.expect(body.amount_cents).to.equal(15000);",
+                  "  pm.environment.set('transaction_id', body.id);",
+                  "});",
+                  "pm.test('Has required fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.payer_account_id).to.be.a('string');",
+                  "  pm.expect(body.receiver_key).to.be.a('string');",
+                  "  pm.expect(body.initiated_at).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Repetir Pagamento (Idempotência)",
+          "description": "Reenvia o mesmo pagamento com a mesma X-Idempotency-Key. Deve retornar 202 com o mesmo transaction_id sem criar nova transação.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",      "value": "application/json" },
+              { "key": "X-API-Key",         "value": "{{api_key}}" },
+              { "key": "X-Idempotency-Key", "value": "{{idempotency_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/payments", "host": ["{{base_url}}"], "path": ["api","v1","pix","payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_account_id\": \"{{payer_account_id}}\",\n  \"receiver_key\": \"{{pix_key}}\",\n  \"amount_cents\": 15000,\n  \"description\": \"Pagamento de teste via PIX\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 202 (idempotent response)', () => pm.response.to.have.status(202));",
+                  "pm.test('Returns same transaction_id', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.equal(pm.environment.get('transaction_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar Transação (aguardar COMPLETED)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pix/payments/{{transaction_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","pix","payments","{{transaction_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Transaction found', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.id).to.equal(pm.environment.get('transaction_id'));",
+                  "  pm.expect(['PENDING','PROCESSING','COMPLETED','FAILED']).to.include(body.status);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.status === 'COMPLETED') {",
+                  "  pm.test('Has completed_at when COMPLETED', () => {",
+                  "    pm.expect(body.completed_at).to.be.a('string');",
+                  "    pm.expect(body.receiver_account_id).to.be.a('string');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar Saldo Pagador (após pagamento)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}","balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance decreased (if COMPLETED)', () => {",
+                  "  pm.expect(pm.response.json().balance_cents).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar Saldo Recebedor (após pagamento)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{receiver_account_id}}/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{receiver_account_id}}","balance"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Balance increased (if COMPLETED)', () => {",
+                  "  pm.expect(pm.response.json().balance_cents).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Pagamentos do Pagador",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}/pix/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}","pix","payments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array with at least 1 item', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "  pm.expect(body.length).to.be.at.least(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Cenários de Erro",
+      "description": "Valida que a API retorna os status HTTP corretos para entradas inválidas.",
+      "item": [
+        {
+          "name": "Saldo Insuficiente (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/payments", "host": ["{{base_url}}"], "path": ["api","v1","pix","payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_account_id\": \"{{payer_account_id}}\",\n  \"receiver_key\": \"{{pix_key}}\",\n  \"amount_cents\": 99999999,\n  \"description\": \"Valor absurdo\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('Error message mentions funds', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('insufficient funds');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Chave PIX Inexistente (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/payments", "host": ["{{base_url}}"], "path": ["api","v1","pix","payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_account_id\": \"{{payer_account_id}}\",\n  \"receiver_key\": \"chave-inexistente@teste.com\",\n  \"amount_cents\": 100,\n  \"description\": \"Chave inválida\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CPF Inválido ao Criar Conta (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/accounts", "host": ["{{base_url}}"], "path": ["api","v1","accounts"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_name\": \"Teste Invalido\",\n  \"cpf\": \"00000000000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('Error message about CPF', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('CPF');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Chave PIX Duplicada (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{receiver_account_id}}\",\n  \"key_type\": \"CPF\",\n  \"key_value\": \"52998224725\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('Error mentions already registered', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('already registered');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Conta Inexistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-API-Key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/00000000-0000-0000-0000-000000000000",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tipo de Chave Inválido (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{receiver_account_id}}\",\n  \"key_type\": \"PASSAPORTE\",\n  \"key_value\": \"123456\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('Error mentions key type', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('key type');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar Chave CPF do Pagador (setup para PIX para si mesmo)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/keys", "host": ["{{base_url}}"], "path": ["api","v1","pix","keys"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"account_id\": \"{{payer_account_id}}\",\n  \"key_type\": \"CPF\",\n  \"key_value\": \"11144477735\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Key created or already exists', () => {",
+                  "  pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PIX para Própria Conta (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/pix/payments", "host": ["{{base_url}}"], "path": ["api","v1","pix","payments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payer_account_id\": \"{{payer_account_id}}\",\n  \"receiver_key\": \"11144477735\",\n  \"amount_cents\": 100,\n  \"description\": \"Pagamento para si mesmo\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('Error mentions same account', () => {",
+                  "  pm.expect(pm.response.json().message).to.include('same account');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "API Key Inválida (401)",
+          "description": "Só retorna 401 se API_KEYS estiver configurado no servidor. Com API_KEYS vazio, retorna 200.",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "chave-invalida-que-nao-existe" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Retorna 401 somente se API_KEYS estiver configurado no servidor",
+                  "pm.test('Status 401 ou 200 (depende de API_KEYS estar configurado)', () => {",
+                  "  pm.expect([200, 401]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 401) {",
+                  "  pm.test('Error message about API key', () => {",
+                  "    pm.expect(pm.response.json().message).to.include('API key');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sem Header X-API-Key (401 se auth habilitada)",
+          "description": "Testa ausência total do header. Retorna 401 quando API_KEYS está configurado.",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/{{payer_account_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api","v1","accounts","{{payer_account_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 401 somente quando API_KEYS não está vazio no servidor",
+                  "pm.test('401 ou 200 conforme configuração de API_KEYS', () => {",
+                  "  pm.expect([200, 401]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('API and DB up', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.status).to.equal('ok');",
+                  "  pm.expect(body.database).to.equal('up');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

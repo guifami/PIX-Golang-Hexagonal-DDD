@@ -1,0 +1,464 @@
+basePath: /
+definitions:
+  httpadapter.AccountResponse:
+    properties:
+      balance_cents:
+        type: integer
+      cpf:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      owner_name:
+        type: string
+      status:
+        type: string
+    type: object
+  httpadapter.BalanceResponse:
+    properties:
+      account_id:
+        type: string
+      balance:
+        type: string
+      balance_cents:
+        type: integer
+    type: object
+  httpadapter.CreateAccountRequest:
+    properties:
+      cpf:
+        type: string
+      owner_name:
+        maxLength: 255
+        minLength: 2
+        type: string
+    required:
+    - cpf
+    - owner_name
+    type: object
+  httpadapter.DepositRequest:
+    properties:
+      amount_cents:
+        minimum: 1
+        type: integer
+    required:
+    - amount_cents
+    type: object
+  httpadapter.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  httpadapter.InitiatePaymentRequest:
+    properties:
+      amount_cents:
+        minimum: 1
+        type: integer
+      description:
+        maxLength: 140
+        type: string
+      payer_account_id:
+        type: string
+      receiver_key:
+        type: string
+    required:
+    - amount_cents
+    - payer_account_id
+    - receiver_key
+    type: object
+  httpadapter.PixKeyResponse:
+    properties:
+      account_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      key_type:
+        type: string
+      key_value:
+        type: string
+      status:
+        type: string
+    type: object
+  httpadapter.RegisterPixKeyRequest:
+    properties:
+      account_id:
+        type: string
+      key_type:
+        type: string
+      key_value:
+        type: string
+    required:
+    - account_id
+    - key_type
+    - key_value
+    type: object
+  httpadapter.TransactionResponse:
+    properties:
+      amount_cents:
+        type: integer
+      completed_at:
+        type: string
+      description:
+        type: string
+      failure_reason:
+        type: string
+      id:
+        type: string
+      initiated_at:
+        type: string
+      payer_account_id:
+        type: string
+      receiver_account_id:
+        type: string
+      receiver_key:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: Simulação do sistema PIX com arquitetura hexagonal + DDD + Kafka
+  title: PIX API
+  version: "1.0"
+paths:
+  /api/v1/accounts:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new bank account. The initial balance is zero; use the
+        deposit endpoint to add funds.
+      parameters:
+      - description: Account payload
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpadapter.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Create account
+      tags:
+      - Accounts
+  /api/v1/accounts/{id}:
+    get:
+      description: Returns account details by ID
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpadapter.AccountResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Get account
+      tags:
+      - Accounts
+  /api/v1/accounts/{id}/balance:
+    get:
+      description: Returns current balance in cents
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpadapter.BalanceResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Get account balance
+      tags:
+      - Accounts
+  /api/v1/accounts/{id}/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Adds funds to an account (simulation — no real banking involved)
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Deposit payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.DepositRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpadapter.AccountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Deposit to account
+      tags:
+      - Accounts
+  /api/v1/accounts/{id}/pix/keys:
+    get:
+      description: Returns all active PIX keys linked to an account
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httpadapter.PixKeyResponse'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: List PIX keys of an account
+      tags:
+      - PIX Keys
+  /api/v1/accounts/{id}/pix/payments:
+    get:
+      description: Returns all PIX transactions where the account was the payer
+      parameters:
+      - description: Account UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/httpadapter.TransactionResponse'
+            type: array
+      summary: List payments made by an account
+      tags:
+      - Payments
+  /api/v1/pix/keys:
+    post:
+      consumes:
+      - application/json
+      description: Registers a new PIX key (CPF, CNPJ, PHONE, EMAIL or EVP) for an
+        account
+      parameters:
+      - description: PIX key payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.RegisterPixKeyRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpadapter.PixKeyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Register a PIX key
+      tags:
+      - PIX Keys
+  /api/v1/pix/keys/{key}:
+    delete:
+      description: Removes a PIX key. Requires account_id query param for ownership
+        verification.
+      parameters:
+      - description: PIX key value
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Owner account UUID
+        in: query
+        name: account_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Delete a PIX key
+      tags:
+      - PIX Keys
+    get:
+      description: Returns the account associated with a PIX key value
+      parameters:
+      - description: PIX key value
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpadapter.PixKeyResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Get PIX key info
+      tags:
+      - PIX Keys
+  /api/v1/pix/payments:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new PIX payment. The transfer is processed asynchronously
+        via Kafka. Returns 202 Accepted with the transaction in PENDING status.
+      parameters:
+      - description: Payment payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpadapter.InitiatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/httpadapter.TransactionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Initiate a PIX payment
+      tags:
+      - Payments
+  /api/v1/pix/payments/{id}:
+    get:
+      description: Returns current status and details of a PIX transaction
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpadapter.TransactionResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httpadapter.ErrorResponse'
+      summary: Get transaction by ID
+      tags:
+      - Payments
+  /health:
+    get:
+      description: Returns API and database status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - Health
+swagger: "2.0"

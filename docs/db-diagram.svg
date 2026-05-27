@@ -1,0 +1,334 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="750" viewBox="0 0 980 750"
+     font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <filter id="sh" x="-4%" y="-4%" width="112%" height="115%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#00000022"/>
+    </filter>
+    <marker id="arr-b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arr-sm" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#475569"/>
+    </marker>
+    <marker id="arr-sm-r" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-sm-g" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#16a34a"/>
+    </marker>
+    <clipPath id="ca"><rect x="30" y="120" width="340" height="220" rx="8"/></clipPath>
+    <clipPath id="ck"><rect x="470" y="50" width="490" height="216" rx="8"/></clipPath>
+    <clipPath id="ct"><rect x="470" y="340" width="490" height="342" rx="8"/></clipPath>
+    <clipPath id="csm"><rect x="30" y="370" width="340" height="162" rx="8"/></clipPath>
+    <clipPath id="cleg"><rect x="30" y="544" width="370" height="184" rx="8"/></clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="980" height="750" fill="#edf0f7"/>
+
+  <!-- Title -->
+  <text x="490" y="28" text-anchor="middle" font-size="17" font-weight="700" fill="#0f172a">Database Schema — PIX API</text>
+  <text x="490" y="46" text-anchor="middle" font-size="11" fill="#64748b">PostgreSQL · 3 tabelas · Hexagonal Architecture + DDD</text>
+
+  <!-- ═══════════════════════════════════════════
+       TABLE: accounts  (30,120  340×220)
+       ═══════════════════════════════════════════ -->
+  <rect x="33" y="123" width="340" height="220" rx="8" fill="#00000016"/>
+  <rect x="30" y="120" width="340" height="220" rx="8" fill="white" filter="url(#sh)"/>
+  <rect x="30" y="120" width="340" height="38" rx="8" fill="#1e293b" clip-path="url(#ca)"/>
+  <rect x="30" y="146" width="340" height="12" fill="#1e293b"/>
+  <text x="200" y="143" text-anchor="middle" font-size="13" font-weight="700" fill="white">accounts</text>
+
+  <!-- id PK -->
+  <rect x="30" y="158" width="340" height="26" fill="#fffbeb"/>
+  <rect x="30" y="158" width="4" height="26" fill="#f59e0b"/>
+  <rect x="37" y="163" width="26" height="15" rx="3" fill="#f59e0b"/>
+  <text x="50" y="174" text-anchor="middle" font-size="9" font-weight="700" fill="#78350f">PK</text>
+  <text x="70" y="175" font-size="11" font-weight="600" fill="#0f172a">id</text>
+  <text x="364" y="175" text-anchor="end" font-size="10" fill="#64748b">UUID · NOT NULL</text>
+  <!-- owner_name -->
+  <rect x="30" y="184" width="340" height="26" fill="white"/>
+  <text x="70" y="201" font-size="11" fill="#0f172a">owner_name</text>
+  <text x="364" y="201" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(255) · NOT NULL</text>
+  <!-- cpf UK -->
+  <rect x="30" y="210" width="340" height="26" fill="#f8fafc"/>
+  <rect x="30" y="210" width="4" height="26" fill="#8b5cf6"/>
+  <rect x="37" y="215" width="26" height="15" rx="3" fill="#8b5cf6"/>
+  <text x="50" y="226" text-anchor="middle" font-size="9" font-weight="700" fill="white">UK</text>
+  <text x="70" y="227" font-size="11" fill="#0f172a">cpf</text>
+  <text x="364" y="227" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(11) · UNIQUE NOT NULL</text>
+  <!-- balance_cents -->
+  <rect x="30" y="236" width="340" height="26" fill="white"/>
+  <text x="70" y="253" font-size="11" fill="#0f172a">balance_cents</text>
+  <text x="364" y="253" text-anchor="end" font-size="10" fill="#64748b">BIGINT · NOT NULL · DEFAULT 0</text>
+  <!-- status -->
+  <rect x="30" y="262" width="340" height="26" fill="#f8fafc"/>
+  <text x="70" y="279" font-size="11" fill="#0f172a">status</text>
+  <text x="364" y="279" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(20) · DEFAULT 'ACTIVE'</text>
+  <!-- created_at -->
+  <rect x="30" y="288" width="340" height="26" fill="white"/>
+  <text x="70" y="305" font-size="11" fill="#0f172a">created_at</text>
+  <text x="364" y="305" text-anchor="end" font-size="10" fill="#64748b">TIMESTAMPTZ · DEFAULT NOW()</text>
+  <!-- updated_at -->
+  <rect x="30" y="314" width="340" height="26" fill="#f8fafc" clip-path="url(#ca)"/>
+  <text x="70" y="331" font-size="11" fill="#0f172a">updated_at</text>
+  <text x="364" y="331" text-anchor="end" font-size="10" fill="#64748b">TIMESTAMPTZ · DEFAULT NOW()</text>
+  <rect x="30" y="120" width="340" height="220" rx="8" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="34" y="350" font-size="9" fill="#94a3b8" font-style="italic">status: ACTIVE | INACTIVE</text>
+
+  <!-- ═══════════════════════════════════════════
+       TABLE: pix_keys  (470,50  490×216)
+       ═══════════════════════════════════════════ -->
+  <rect x="473" y="53" width="490" height="216" rx="8" fill="#00000016"/>
+  <rect x="470" y="50" width="490" height="216" rx="8" fill="white" filter="url(#sh)"/>
+  <rect x="470" y="50" width="490" height="38" rx="8" fill="#1e293b" clip-path="url(#ck)"/>
+  <rect x="470" y="76" width="490" height="12" fill="#1e293b"/>
+  <text x="715" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="white">pix_keys</text>
+
+  <!-- id PK -->
+  <rect x="470" y="88" width="490" height="26" fill="#fffbeb"/>
+  <rect x="470" y="88" width="4" height="26" fill="#f59e0b"/>
+  <rect x="477" y="93" width="26" height="15" rx="3" fill="#f59e0b"/>
+  <text x="490" y="104" text-anchor="middle" font-size="9" font-weight="700" fill="#78350f">PK</text>
+  <text x="510" y="105" font-size="11" font-weight="600" fill="#0f172a">id</text>
+  <text x="954" y="105" text-anchor="end" font-size="10" fill="#64748b">UUID · NOT NULL</text>
+  <!-- account_id FK -->
+  <rect x="470" y="114" width="490" height="26" fill="#eff6ff"/>
+  <rect x="470" y="114" width="4" height="26" fill="#3b82f6"/>
+  <rect x="477" y="119" width="26" height="15" rx="3" fill="#3b82f6"/>
+  <text x="490" y="130" text-anchor="middle" font-size="9" font-weight="700" fill="white">FK</text>
+  <text x="510" y="131" font-size="11" font-weight="600" fill="#0f172a">account_id</text>
+  <text x="954" y="131" text-anchor="end" font-size="10" fill="#3b82f6">UUID → accounts.id · NOT NULL · ON DELETE CASCADE</text>
+  <!-- key_type -->
+  <rect x="470" y="140" width="490" height="26" fill="white"/>
+  <text x="510" y="157" font-size="11" fill="#0f172a">key_type</text>
+  <text x="954" y="157" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(20) · NOT NULL · [CPF | CNPJ | PHONE | EMAIL | EVP]</text>
+  <!-- key_value UK -->
+  <rect x="470" y="166" width="490" height="26" fill="#f8fafc"/>
+  <rect x="470" y="166" width="4" height="26" fill="#8b5cf6"/>
+  <rect x="477" y="171" width="26" height="15" rx="3" fill="#8b5cf6"/>
+  <text x="490" y="182" text-anchor="middle" font-size="9" font-weight="700" fill="white">UK</text>
+  <text x="510" y="183" font-size="11" fill="#0f172a">key_value</text>
+  <text x="954" y="183" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(255) · UNIQUE NOT NULL</text>
+  <!-- status -->
+  <rect x="470" y="192" width="490" height="26" fill="white"/>
+  <text x="510" y="209" font-size="11" fill="#0f172a">status</text>
+  <text x="954" y="209" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(20) · NOT NULL · DEFAULT 'ACTIVE'</text>
+  <!-- created_at -->
+  <rect x="470" y="218" width="490" height="26" fill="#f8fafc" clip-path="url(#ck)"/>
+  <text x="510" y="235" font-size="11" fill="#0f172a">created_at</text>
+  <text x="954" y="235" text-anchor="end" font-size="10" fill="#64748b">TIMESTAMPTZ · NOT NULL · DEFAULT NOW()</text>
+  <!-- index footer -->
+  <rect x="470" y="244" width="490" height="22" fill="#f1f5f9" clip-path="url(#ck)"/>
+  <text x="478" y="258" font-size="9" fill="#64748b">◈  INDEX  idx_pix_keys_account_id  ON (account_id)</text>
+  <rect x="470" y="50" width="490" height="216" rx="8" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- note abaixo de pix_keys -->
+  <text x="474" y="279" font-size="9" fill="#94a3b8" font-style="italic">⚑  Máx. 5 chaves por conta — regra de negócio no use case (não enforçada pelo banco)</text>
+
+  <!-- ═══════════════════════════════════════════
+       TABLE: pix_transactions  (470,340  490×342)
+       ═══════════════════════════════════════════ -->
+  <rect x="473" y="343" width="490" height="342" rx="8" fill="#00000016"/>
+  <rect x="470" y="340" width="490" height="342" rx="8" fill="white" filter="url(#sh)"/>
+  <rect x="470" y="340" width="490" height="38" rx="8" fill="#0f172a" clip-path="url(#ct)"/>
+  <rect x="470" y="366" width="490" height="12" fill="#0f172a"/>
+  <text x="715" y="363" text-anchor="middle" font-size="13" font-weight="700" fill="white">pix_transactions</text>
+
+  <!-- id PK -->
+  <rect x="470" y="378" width="490" height="26" fill="#fffbeb"/>
+  <rect x="470" y="378" width="4" height="26" fill="#f59e0b"/>
+  <rect x="477" y="383" width="26" height="15" rx="3" fill="#f59e0b"/>
+  <text x="490" y="394" text-anchor="middle" font-size="9" font-weight="700" fill="#78350f">PK</text>
+  <text x="510" y="395" font-size="11" font-weight="600" fill="#0f172a">id</text>
+  <text x="954" y="395" text-anchor="end" font-size="10" fill="#64748b">UUID · NOT NULL</text>
+  <!-- payer_account_id FK -->
+  <rect x="470" y="404" width="490" height="26" fill="#eff6ff"/>
+  <rect x="470" y="404" width="4" height="26" fill="#3b82f6"/>
+  <rect x="477" y="409" width="26" height="15" rx="3" fill="#3b82f6"/>
+  <text x="490" y="420" text-anchor="middle" font-size="9" font-weight="700" fill="white">FK</text>
+  <text x="510" y="421" font-size="11" font-weight="600" fill="#0f172a">payer_account_id</text>
+  <text x="954" y="421" text-anchor="end" font-size="10" fill="#3b82f6">UUID → accounts.id · NOT NULL</text>
+  <!-- receiver_key -->
+  <rect x="470" y="430" width="490" height="26" fill="white"/>
+  <text x="510" y="447" font-size="11" fill="#0f172a">receiver_key</text>
+  <text x="954" y="447" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(255) · NOT NULL</text>
+  <!-- receiver_account_id FK? -->
+  <rect x="470" y="456" width="490" height="26" fill="#f0fdf4"/>
+  <rect x="470" y="456" width="4" height="26" fill="#10b981"/>
+  <rect x="477" y="461" width="32" height="15" rx="3" fill="#10b981"/>
+  <text x="493" y="472" text-anchor="middle" font-size="9" font-weight="700" fill="white">FK?</text>
+  <text x="516" y="473" font-size="11" font-style="italic" fill="#374151">receiver_account_id</text>
+  <text x="954" y="473" text-anchor="end" font-size="10" fill="#10b981">UUID → accounts.id · NULL  (preenchido async via Kafka)</text>
+  <!-- amount_cents -->
+  <rect x="470" y="482" width="490" height="26" fill="white"/>
+  <text x="510" y="499" font-size="11" fill="#0f172a">amount_cents</text>
+  <text x="954" y="499" text-anchor="end" font-size="10" fill="#64748b">BIGINT · NOT NULL · CHECK(amount_cents &gt; 0)</text>
+  <!-- status -->
+  <rect x="470" y="508" width="490" height="26" fill="#f8fafc"/>
+  <text x="510" y="525" font-size="11" fill="#0f172a">status</text>
+  <text x="954" y="525" text-anchor="end" font-size="10" fill="#64748b">VARCHAR(20) · NOT NULL · DEFAULT 'PENDING'</text>
+  <!-- description nullable -->
+  <rect x="470" y="534" width="490" height="26" fill="white"/>
+  <text x="510" y="551" font-size="11" font-style="italic" fill="#94a3b8">description</text>
+  <text x="954" y="551" text-anchor="end" font-size="10" fill="#94a3b8">VARCHAR(140) · NULL</text>
+  <!-- initiated_at -->
+  <rect x="470" y="560" width="490" height="26" fill="#f8fafc"/>
+  <text x="510" y="577" font-size="11" fill="#0f172a">initiated_at</text>
+  <text x="954" y="577" text-anchor="end" font-size="10" fill="#64748b">TIMESTAMPTZ · NOT NULL · DEFAULT NOW()</text>
+  <!-- completed_at nullable -->
+  <rect x="470" y="586" width="490" height="26" fill="white"/>
+  <text x="510" y="603" font-size="11" font-style="italic" fill="#94a3b8">completed_at</text>
+  <text x="954" y="603" text-anchor="end" font-size="10" fill="#94a3b8">TIMESTAMPTZ · NULL</text>
+  <!-- failure_reason nullable -->
+  <rect x="470" y="612" width="490" height="26" fill="#f8fafc"/>
+  <text x="510" y="629" font-size="11" font-style="italic" fill="#94a3b8">failure_reason</text>
+  <text x="954" y="629" text-anchor="end" font-size="10" fill="#94a3b8">VARCHAR(255) · NULL</text>
+  <!-- index footers -->
+  <rect x="470" y="638" width="490" height="22" fill="#f1f5f9"/>
+  <text x="478" y="652" font-size="9" fill="#64748b">◈  INDEX  idx_pix_transactions_payer   ON (payer_account_id)</text>
+  <rect x="470" y="660" width="490" height="22" fill="#f1f5f9" clip-path="url(#ct)"/>
+  <text x="478" y="674" font-size="9" fill="#64748b">◈  INDEX  idx_pix_transactions_status  ON (status)</text>
+  <rect x="470" y="340" width="490" height="342" rx="8" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- ═══════════════════════════════════════════
+       RELATIONSHIP LINES
+       ═══════════════════════════════════════════ -->
+
+  <!--
+    R1: accounts.id (PK) ─── 1:N ──► pix_keys.account_id (FK)
+        blue solid, EXIT accounts right at y=171, route up to pix_keys left at y=127
+        "1" label clearly separated to the left at x=374
+        "N" label at destination
+        "CASCADE" label on the vertical segment of the elbow
+  -->
+  <path d="M370,171 L422,171 L422,127 L470,127"
+        stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-b)"/>
+  <!-- 1 label: above the horizontal exit segment -->
+  <text x="374" y="163" font-size="10" font-weight="700" fill="#3b82f6">1</text>
+  <!-- N label: just left of destination -->
+  <text x="462" y="121" font-size="10" font-weight="700" fill="#3b82f6">N</text>
+  <!-- CASCADE annotation: on the vertical segment x=422, between y=127 and y=171 -->
+  <rect x="402" y="141" width="54" height="14" rx="3" fill="#eff6ff"/>
+  <text x="429" y="152" text-anchor="middle" font-size="9" fill="#3b82f6" font-style="italic">CASCADE</text>
+
+  <!--
+    R2: accounts.id ─── 1:N ──► pix_transactions.payer_account_id (FK)
+        blue solid, exits accounts right at y=181 (below R1 exit), elbow right then down
+        "N" label only at destination (the "1" is obvious — all come from accounts PK)
+  -->
+  <path d="M370,181 L434,181 L434,417 L470,417"
+        stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr-b)"/>
+  <!-- N label at destination -->
+  <text x="461" y="411" font-size="10" font-weight="700" fill="#3b82f6">N</text>
+
+  <!--
+    R3: accounts.id ─── 1:N? ──► pix_transactions.receiver_account_id (FK?)
+        green dashed, exits accounts right at y=192, elbow right (further x) then down
+        "N?" label at destination
+  -->
+  <path d="M370,192 L448,192 L448,469 L470,469"
+        stroke="#10b981" stroke-width="1.8" fill="none" stroke-dasharray="6,4" marker-end="url(#arr-g)"/>
+  <!-- N? label at destination -->
+  <text x="460" y="463" font-size="10" font-weight="700" fill="#10b981">N?</text>
+
+  <!-- Single "1" label for all 3 lines, shown once near accounts edge -->
+  <!-- Already shown for R1; for R2+R3, add a small bracket annotation -->
+  <line x1="370" y1="178" x2="370" y2="195" stroke="#64748b" stroke-width="1"/>
+  <line x1="368" y1="178" x2="372" y2="178" stroke="#64748b" stroke-width="1"/>
+  <line x1="368" y1="195" x2="372" y2="195" stroke="#64748b" stroke-width="1"/>
+  <text x="360" y="190" text-anchor="end" font-size="10" font-weight="700" fill="#64748b">1</text>
+
+  <!-- ═══════════════════════════════════════════
+       STATE MACHINE  (30,370  340×162)
+       ═══════════════════════════════════════════ -->
+  <rect x="33" y="373" width="340" height="162" rx="8" fill="#00000016"/>
+  <rect x="30" y="370" width="340" height="162" rx="8" fill="white" filter="url(#sh)" stroke="#e2e8f0" stroke-width="1.5"/>
+  <!-- header -->
+  <rect x="30" y="370" width="340" height="28" rx="8" fill="#1e293b" clip-path="url(#csm)"/>
+  <rect x="30" y="386" width="340" height="12" fill="#1e293b"/>
+  <text x="200" y="388" text-anchor="middle" font-size="11" font-weight="700" fill="white">pix_transactions.status — máquina de estados</text>
+
+  <!-- State nodes -->
+  <rect x="46" y="412" width="70" height="24" rx="5" fill="#fef9c3" stroke="#d97706" stroke-width="1.5"/>
+  <text x="81" y="428" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">PENDING</text>
+
+  <rect x="150" y="412" width="82" height="24" rx="5" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="191" y="428" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">PROCESSING</text>
+
+  <rect x="268" y="400" width="84" height="24" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+  <text x="310" y="416" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">COMPLETED</text>
+
+  <rect x="268" y="434" width="84" height="24" rx="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
+  <text x="310" y="450" text-anchor="middle" font-size="10" font-weight="700" fill="#b91c1c">FAILED</text>
+
+  <!-- PENDING → PROCESSING -->
+  <line x1="116" y1="424" x2="149" y2="424" stroke="#475569" stroke-width="1.5" marker-end="url(#arr-sm)"/>
+  <text x="132" y="420" text-anchor="middle" font-size="8" fill="#475569">Start()</text>
+
+  <!-- PROCESSING → COMPLETED -->
+  <path d="M232,418 L250,418 L250,412 L267,412" stroke="#16a34a" stroke-width="1.5" fill="none" marker-end="url(#arr-sm-g)"/>
+  <text x="249" y="408" text-anchor="middle" font-size="8" fill="#16a34a">Complete()</text>
+
+  <!-- PROCESSING → FAILED -->
+  <path d="M232,430 L250,430 L250,446 L267,446" stroke="#dc2626" stroke-width="1.5" fill="none" marker-end="url(#arr-sm-r)"/>
+  <text x="249" y="458" text-anchor="middle" font-size="8" fill="#dc2626">Fail()</text>
+
+  <!-- PENDING → FAILED direct (dashed) -->
+  <path d="M81,436 L81,464 L310,464 L310,458" stroke="#dc2626" stroke-width="1.2" fill="none"
+        stroke-dasharray="4,3" marker-end="url(#arr-sm-r)"/>
+  <text x="196" y="474" text-anchor="middle" font-size="8" fill="#dc2626" font-style="italic">Fail() direto — ex: saldo insuficiente (pula PROCESSING)</text>
+
+  <!-- footer notes inside state machine box -->
+  <text x="36" y="493" font-size="8.5" fill="#94a3b8" font-style="italic">● COMPLETED e FAILED são estados finais — nenhuma transição é permitida após eles.</text>
+  <text x="36" y="506" font-size="8.5" fill="#94a3b8" font-style="italic">● completed_at é preenchido em ambos; failure_reason apenas em FAILED.</text>
+  <text x="36" y="519" font-size="8.5" fill="#94a3b8" font-style="italic">● receiver_account_id (NULL) é preenchido em COMPLETED pelo Kafka consumer.</text>
+
+  <!-- ═══════════════════════════════════════════
+       LEGEND  (30,544  370×184)
+       ═══════════════════════════════════════════ -->
+  <rect x="33" y="547" width="370" height="184" rx="8" fill="#00000016"/>
+  <rect x="30" y="544" width="370" height="184" rx="8" fill="white" filter="url(#sh)" stroke="#e2e8f0" stroke-width="1.5"/>
+  <!-- header -->
+  <rect x="30" y="544" width="370" height="28" rx="8" fill="#f1f5f9" clip-path="url(#cleg)"/>
+  <rect x="30" y="560" width="370" height="12" fill="#f1f5f9"/>
+  <text x="215" y="562" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">LEGENDA</text>
+
+  <!-- Row 1: PK -->
+  <rect x="30" y="572" width="370" height="26" fill="white"/>
+  <rect x="42" y="577" width="26" height="15" rx="3" fill="#f59e0b"/>
+  <text x="55" y="588" text-anchor="middle" font-size="9" font-weight="700" fill="#78350f">PK</text>
+  <text x="76" y="589" font-size="10" fill="#374151">Primary Key — identidade única da linha</text>
+
+  <!-- Row 2: FK -->
+  <rect x="30" y="598" width="370" height="26" fill="#f8fafc"/>
+  <rect x="42" y="603" width="26" height="15" rx="3" fill="#3b82f6"/>
+  <text x="55" y="614" text-anchor="middle" font-size="9" font-weight="700" fill="white">FK</text>
+  <text x="76" y="615" font-size="10" fill="#374151">Foreign Key NOT NULL — relacionamento obrigatório</text>
+
+  <!-- Row 3: FK? -->
+  <rect x="30" y="624" width="370" height="26" fill="white"/>
+  <rect x="42" y="629" width="32" height="15" rx="3" fill="#10b981"/>
+  <text x="58" y="640" text-anchor="middle" font-size="9" font-weight="700" fill="white">FK?</text>
+  <text x="82" y="641" font-size="10" fill="#374151">Foreign Key NULL — preenchida assincronamente</text>
+
+  <!-- Row 4: UK -->
+  <rect x="30" y="650" width="370" height="26" fill="#f8fafc"/>
+  <rect x="42" y="655" width="26" height="15" rx="3" fill="#8b5cf6"/>
+  <text x="55" y="666" text-anchor="middle" font-size="9" font-weight="700" fill="white">UK</text>
+  <text x="76" y="667" font-size="10" fill="#374151">UNIQUE constraint — nenhum duplicado permitido</text>
+
+  <!-- Row 5: nullable -->
+  <rect x="30" y="676" width="370" height="26" fill="white"/>
+  <text x="50" y="693" font-size="11" font-style="italic" fill="#94a3b8">campo</text>
+  <text x="104" y="693" font-size="10" fill="#374151">Coluna em itálico cinza = valor NULL permitido</text>
+
+  <!-- Row 6: index -->
+  <rect x="30" y="702" width="370" height="26" fill="#f8fafc" clip-path="url(#cleg)"/>
+  <text x="50" y="719" font-size="10" fill="#64748b">◈</text>
+  <text x="64" y="719" font-size="10" fill="#374151">INDEX secundário — melhora performance de queries de listagem</text>
+
+</svg>

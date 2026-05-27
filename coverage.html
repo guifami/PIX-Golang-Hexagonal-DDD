@@ -1,0 +1,962 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>usecase: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">go-api/internal/application/usecase/account_service.go (100.0%)</option>
+				
+				<option value="file1">go-api/internal/application/usecase/payment_service.go (100.0%)</option>
+				
+				<option value="file2">go-api/internal/application/usecase/pixkey_service.go (100.0%)</option>
+				
+				<option value="file3">go-api/internal/domain/account/entity.go (100.0%)</option>
+				
+				<option value="file4">go-api/internal/domain/account/value_objects.go (100.0%)</option>
+				
+				<option value="file5">go-api/internal/domain/pixkey/entity.go (100.0%)</option>
+				
+				<option value="file6">go-api/internal/domain/pixkey/value_objects.go (100.0%)</option>
+				
+				<option value="file7">go-api/internal/domain/transaction/entity.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package usecase
+
+import (
+        "context"
+
+        portin "go-api/internal/application/ports/in"
+        portout "go-api/internal/application/ports/out"
+        "go-api/internal/domain/account"
+        "go-api/internal/infrastructure/logger"
+
+        "go.uber.org/zap"
+)
+
+type AccountService struct {
+        repo portout.AccountRepository
+}
+
+func NewAccountService(repo portout.AccountRepository) portin.AccountUseCase <span class="cov8" title="1">{
+        return &amp;AccountService{repo: repo}
+}</span>
+
+func (s *AccountService) Create(ctx context.Context, ownerName, cpf string) (*account.Account, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "account.create"), zap.String("cpf", cpf))
+
+        log.Info("creating account")
+
+        _, err := s.repo.FindByCPF(ctx, cpf)
+        if err == nil </span><span class="cov8" title="1">{
+                log.Warn("CPF already in use")
+                return nil, account.ErrCPFAlreadyInUse
+        }</span>
+
+        <span class="cov8" title="1">acc, err := account.NewAccount(ownerName, cpf)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Warn("domain validation failed", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.repo.Create(ctx, acc); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to persist account", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("account created", zap.String("account_id", acc.ID))
+        return acc, nil</span>
+}
+
+func (s *AccountService) GetByID(ctx context.Context, id string) (*account.Account, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "account.get"), zap.String("account_id", id))
+
+        acc, err := s.repo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("account not found", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return acc, nil</span>
+}
+
+func (s *AccountService) GetBalance(ctx context.Context, id string) (account.Money, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "account.balance"), zap.String("account_id", id))
+
+        acc, err := s.repo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("account not found", zap.Error(err))
+                return 0, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("balance retrieved", zap.Int64("balance_cents", acc.Balance.Cents()))
+        return acc.Balance, nil</span>
+}
+
+func (s *AccountService) Deposit(ctx context.Context, id string, amountCents int64) (*account.Account, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "account.deposit"), zap.String("account_id", id))
+
+        amount, err := account.NewMoney(amountCents)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if !amount.IsPositive() </span><span class="cov8" title="1">{
+                return nil, account.ErrInvalidAmount
+        }</span>
+
+        <span class="cov8" title="1">acc, err := s.repo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("account not found", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := acc.Credit(amount); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.repo.Update(ctx, acc); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to update account", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("deposit completed", zap.Int64("amount_cents", amountCents))
+        return acc, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package usecase
+
+import (
+        "context"
+
+        portin "go-api/internal/application/ports/in"
+        portout "go-api/internal/application/ports/out"
+        "go-api/internal/domain/account"
+        "go-api/internal/domain/transaction"
+        "go-api/internal/infrastructure/logger"
+
+        "go.uber.org/zap"
+)
+
+type PaymentService struct {
+        txRepo      portout.TransactionRepository
+        accountRepo portout.AccountRepository
+        keyRepo     portout.PixKeyRepository
+        publisher   portout.EventPublisher
+}
+
+func NewPaymentService(
+        txRepo portout.TransactionRepository,
+        accountRepo portout.AccountRepository,
+        keyRepo portout.PixKeyRepository,
+        publisher portout.EventPublisher,
+) portin.PaymentUseCase <span class="cov8" title="1">{
+        return &amp;PaymentService{
+                txRepo:      txRepo,
+                accountRepo: accountRepo,
+                keyRepo:     keyRepo,
+                publisher:   publisher,
+        }
+}</span>
+
+func (s *PaymentService) Initiate(ctx context.Context, payerAccountID, receiverKey, description string, amountCents int64) (*transaction.PixTransaction, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "payment.initiate"),
+                zap.String("payer_account_id", payerAccountID),
+                zap.String("receiver_key", receiverKey),
+        )
+
+        log.Info("initiating pix payment")
+
+        amount := account.Money(amountCents)
+        if !amount.IsPositive() </span><span class="cov8" title="1">{
+                return nil, transaction.ErrInvalidAmount
+        }</span>
+
+        <span class="cov8" title="1">payer, err := s.accountRepo.FindByID(ctx, payerAccountID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("payer account not found", zap.Error(err))
+                return nil, account.ErrAccountNotFound
+        }</span>
+        <span class="cov8" title="1">if !payer.IsActive() </span><span class="cov8" title="1">{
+                return nil, account.ErrAccountInactive
+        }</span>
+
+        <span class="cov8" title="1">receiverKeyEntity, err := s.keyRepo.FindByValue(ctx, receiverKey)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("receiver key not found", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if payer.ID == receiverKeyEntity.AccountID </span><span class="cov8" title="1">{
+                return nil, transaction.ErrSameAccount
+        }</span>
+
+        <span class="cov8" title="1">if payer.Balance.Cents() &lt; amountCents </span><span class="cov8" title="1">{
+                log.Warn("insufficient funds",
+                        zap.Int64("balance", payer.Balance.Cents()),
+                        zap.Int64("amount", amountCents),
+                )
+                return nil, account.ErrInsufficientFunds
+        }</span>
+
+        // amount.IsPositive() is guaranteed above — NewTransaction cannot fail here.
+        <span class="cov8" title="1">tx, _ := transaction.NewTransaction(payerAccountID, receiverKey, description, amount)
+
+        if err := s.txRepo.Create(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to persist transaction", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.publisher.PublishPaymentInitiated(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to publish payment initiated event", zap.Error(err))
+        }</span>
+
+        <span class="cov8" title="1">log.Info("payment initiated", zap.String("transaction_id", tx.ID))
+        return tx, nil</span>
+}
+
+func (s *PaymentService) Process(ctx context.Context, transactionID string) error <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "payment.process"),
+                zap.String("transaction_id", transactionID),
+        )
+
+        log.Info("processing pix payment")
+
+        tx, err := s.txRepo.FindByID(ctx, transactionID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("transaction not found", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := tx.StartProcessing(); err != nil </span><span class="cov8" title="1">{
+                log.Warn("transaction already processed", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.txRepo.Update(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to update transaction to processing", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">receiverKey, err := s.keyRepo.FindByValue(ctx, tx.ReceiverKey)
+        if err != nil </span><span class="cov8" title="1">{
+                reason := "receiver key not found"
+                _ = s.failTransaction(ctx, tx, reason, log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">payer, err := s.accountRepo.FindByID(ctx, tx.PayerAccountID)
+        if err != nil </span><span class="cov8" title="1">{
+                reason := "payer account not found"
+                _ = s.failTransaction(ctx, tx, reason, log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">receiver, err := s.accountRepo.FindByID(ctx, receiverKey.AccountID)
+        if err != nil </span><span class="cov8" title="1">{
+                reason := "receiver account not found"
+                _ = s.failTransaction(ctx, tx, reason, log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := payer.Debit(tx.Amount); err != nil </span><span class="cov8" title="1">{
+                reason := "insufficient funds at processing time"
+                _ = s.failTransaction(ctx, tx, reason, log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := receiver.Credit(tx.Amount); err != nil </span><span class="cov8" title="1">{
+                reason := "failed to credit receiver"
+                _ = s.failTransaction(ctx, tx, reason, log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.accountRepo.Update(ctx, payer); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to debit payer", zap.Error(err))
+                _ = s.failTransaction(ctx, tx, "database error on debit", log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.accountRepo.Update(ctx, receiver); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to credit receiver", zap.Error(err))
+                _ = s.failTransaction(ctx, tx, "database error on credit", log)
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := tx.Complete(receiver.ID); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to complete transaction", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.txRepo.Update(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to persist completed transaction", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.publisher.PublishPaymentCompleted(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to publish payment completed event", zap.Error(err))
+        }</span>
+
+        <span class="cov8" title="1">log.Info("payment processed successfully",
+                zap.String("payer_id", payer.ID),
+                zap.String("receiver_id", receiver.ID),
+                zap.Int64("amount_cents", tx.Amount.Cents()),
+        )
+        return nil</span>
+}
+
+func (s *PaymentService) GetByID(ctx context.Context, id string) (*transaction.PixTransaction, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "payment.get"), zap.String("transaction_id", id))
+
+        tx, err := s.txRepo.FindByID(ctx, id)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("transaction not found", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return tx, nil</span>
+}
+
+func (s *PaymentService) ListByAccount(ctx context.Context, accountID string) ([]transaction.PixTransaction, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(zap.String("operation", "payment.list"), zap.String("account_id", accountID))
+
+        txs, err := s.txRepo.FindByPayerAccountID(ctx, accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to list transactions", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("transactions listed", zap.Int("count", len(txs)))
+        return txs, nil</span>
+}
+
+func (s *PaymentService) failTransaction(ctx context.Context, tx *transaction.PixTransaction, reason string, log *zap.Logger) error <span class="cov8" title="1">{
+        _ = tx.Fail(reason)
+        if err := s.txRepo.Update(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to persist failed transaction", zap.Error(err))
+                return err
+        }</span>
+        <span class="cov8" title="1">if err := s.publisher.PublishPaymentFailed(ctx, tx); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to publish payment failed event", zap.Error(err))
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package usecase
+
+import (
+        "context"
+
+        portin "go-api/internal/application/ports/in"
+        portout "go-api/internal/application/ports/out"
+        "go-api/internal/domain/account"
+        "go-api/internal/domain/pixkey"
+        "go-api/internal/infrastructure/logger"
+
+        "go.uber.org/zap"
+)
+
+type PixKeyService struct {
+        keyRepo     portout.PixKeyRepository
+        accountRepo portout.AccountRepository
+}
+
+func NewPixKeyService(keyRepo portout.PixKeyRepository, accountRepo portout.AccountRepository) portin.PixKeyUseCase <span class="cov8" title="1">{
+        return &amp;PixKeyService{keyRepo: keyRepo, accountRepo: accountRepo}
+}</span>
+
+func (s *PixKeyService) Register(ctx context.Context, accountID, keyType, keyValue string) (*pixkey.PixKey, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "pixkey.register"),
+                zap.String("account_id", accountID),
+                zap.String("key_type", keyType),
+        )
+
+        log.Info("registering pix key")
+
+        acc, err := s.accountRepo.FindByID(ctx, accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("account not found", zap.Error(err))
+                return nil, account.ErrAccountNotFound
+        }</span>
+        <span class="cov8" title="1">if !acc.IsActive() </span><span class="cov8" title="1">{
+                return nil, account.ErrAccountInactive
+        }</span>
+
+        <span class="cov8" title="1">count, err := s.keyRepo.CountByAccountID(ctx, accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to count keys", zap.Error(err))
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">if count &gt;= 5 </span><span class="cov8" title="1">{
+                log.Warn("key limit reached", zap.Int("count", count))
+                return nil, pixkey.ErrKeyLimitReached
+        }</span>
+
+        <span class="cov8" title="1">existing, err := s.keyRepo.FindByValue(ctx, keyValue)
+        if err == nil &amp;&amp; existing != nil </span><span class="cov8" title="1">{
+                log.Warn("key already registered", zap.String("key_value", keyValue))
+                return nil, pixkey.ErrKeyAlreadyExists
+        }</span>
+
+        <span class="cov8" title="1">key, err := pixkey.NewPixKey(accountID, keyType, keyValue)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Warn("domain validation failed", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := s.keyRepo.Create(ctx, key); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to persist key", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("pix key registered", zap.String("key_id", key.ID))
+        return key, nil</span>
+}
+
+func (s *PixKeyService) GetByValue(ctx context.Context, keyValue string) (*pixkey.PixKey, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "pixkey.get"),
+                zap.String("key_value", keyValue),
+        )
+
+        key, err := s.keyRepo.FindByValue(ctx, keyValue)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("key not found", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return key, nil</span>
+}
+
+func (s *PixKeyService) Delete(ctx context.Context, keyValue, accountID string) error <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "pixkey.delete"),
+                zap.String("key_value", keyValue),
+                zap.String("account_id", accountID),
+        )
+
+        key, err := s.keyRepo.FindByValue(ctx, keyValue)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Info("key not found", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if !key.BelongsTo(accountID) </span><span class="cov8" title="1">{
+                log.Warn("unauthorized key deletion attempt")
+                return pixkey.ErrUnauthorized
+        }</span>
+
+        <span class="cov8" title="1">if err := s.keyRepo.Delete(ctx, keyValue); err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to delete key", zap.Error(err))
+                return err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("pix key deleted")
+        return nil</span>
+}
+
+func (s *PixKeyService) ListByAccount(ctx context.Context, accountID string) ([]pixkey.PixKey, error) <span class="cov8" title="1">{
+        log := logger.FromContext(ctx).With(
+                zap.String("operation", "pixkey.list"),
+                zap.String("account_id", accountID),
+        )
+
+        keys, err := s.keyRepo.FindByAccountID(ctx, accountID)
+        if err != nil </span><span class="cov8" title="1">{
+                log.Error("failed to list keys", zap.Error(err))
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">log.Info("keys listed", zap.Int("count", len(keys)))
+        return keys, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package account
+
+import (
+        "strings"
+        "time"
+
+        "github.com/google/uuid"
+)
+
+type Account struct {
+        ID        string
+        OwnerName string
+        CPF       CPF
+        Balance   Money
+        Status    AccountStatus
+        CreatedAt time.Time
+        UpdatedAt time.Time
+}
+
+func NewAccount(ownerName, cpf string) (*Account, error) <span class="cov8" title="1">{
+        name := strings.TrimSpace(ownerName)
+        if name == "" </span><span class="cov8" title="1">{
+                return nil, ErrInvalidName
+        }</span>
+
+        <span class="cov8" title="1">validCPF, err := NewCPF(cpf)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">now := time.Now()
+        return &amp;Account{
+                ID:        uuid.NewString(),
+                OwnerName: name,
+                CPF:       validCPF,
+                Balance:   Money(0),
+                Status:    Active,
+                CreatedAt: now,
+                UpdatedAt: now,
+        }, nil</span>
+}
+
+func (a *Account) Debit(amount Money) error <span class="cov8" title="1">{
+        if a.Status != Active </span><span class="cov8" title="1">{
+                return ErrAccountInactive
+        }</span>
+        <span class="cov8" title="1">newBalance, err := a.Balance.Sub(amount)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">a.Balance = newBalance
+        a.UpdatedAt = time.Now()
+        return nil</span>
+}
+
+func (a *Account) Credit(amount Money) error <span class="cov8" title="1">{
+        if a.Status != Active </span><span class="cov8" title="1">{
+                return ErrAccountInactive
+        }</span>
+        <span class="cov8" title="1">a.Balance = a.Balance.Add(amount)
+        a.UpdatedAt = time.Now()
+        return nil</span>
+}
+
+func (a *Account) Deactivate() <span class="cov8" title="1">{
+        a.Status = Inactive
+        a.UpdatedAt = time.Now()
+}</span>
+
+func (a *Account) Activate() <span class="cov8" title="1">{
+        a.Status = Active
+        a.UpdatedAt = time.Now()
+}</span>
+
+func (a *Account) IsActive() bool <span class="cov8" title="1">{
+        return a.Status == Active
+}</span>
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package account
+
+import (
+        "fmt"
+        "strconv"
+)
+
+type AccountStatus string
+
+const (
+        Active   AccountStatus = "ACTIVE"
+        Inactive AccountStatus = "INACTIVE"
+)
+
+// Money represents an amount in cents to avoid floating-point precision issues.
+type Money int64
+
+func NewMoney(cents int64) (Money, error) <span class="cov8" title="1">{
+        if cents &lt; 0 </span><span class="cov8" title="1">{
+                return 0, ErrInvalidAmount
+        }</span>
+        <span class="cov8" title="1">return Money(cents), nil</span>
+}
+
+func (m Money) Cents() int64 <span class="cov8" title="1">{
+        return int64(m)
+}</span>
+
+func (m Money) IsPositive() bool <span class="cov8" title="1">{
+        return m &gt; 0
+}</span>
+
+func (m Money) Add(other Money) Money <span class="cov8" title="1">{
+        return m + other
+}</span>
+
+func (m Money) Sub(other Money) (Money, error) <span class="cov8" title="1">{
+        if m &lt; other </span><span class="cov8" title="1">{
+                return 0, ErrInsufficientFunds
+        }</span>
+        <span class="cov8" title="1">return m - other, nil</span>
+}
+
+func (m Money) String() string <span class="cov8" title="1">{
+        reais := m.Cents() / 100
+        centavos := m.Cents() % 100
+        return fmt.Sprintf("R$ %d.%02d", reais, centavos)
+}</span>
+
+// CPF is a value object that validates the Brazilian CPF document.
+type CPF string
+
+func NewCPF(value string) (CPF, error) <span class="cov8" title="1">{
+        digits := onlyDigits(value)
+        if len(digits) != 11 </span><span class="cov8" title="1">{
+                return "", ErrInvalidCPF
+        }</span>
+        <span class="cov8" title="1">if allSame(digits) </span><span class="cov8" title="1">{
+                return "", ErrInvalidCPF
+        }</span>
+        <span class="cov8" title="1">if !validCPFCheckDigits(digits) </span><span class="cov8" title="1">{
+                return "", ErrInvalidCPF
+        }</span>
+        <span class="cov8" title="1">return CPF(digits), nil</span>
+}
+
+func (c CPF) String() string <span class="cov8" title="1">{
+        return string(c)
+}</span>
+
+func onlyDigits(s string) string <span class="cov8" title="1">{
+        out := make([]byte, 0, len(s))
+        for i := 0; i &lt; len(s); i++ </span><span class="cov8" title="1">{
+                if s[i] &gt;= '0' &amp;&amp; s[i] &lt;= '9' </span><span class="cov8" title="1">{
+                        out = append(out, s[i])
+                }</span>
+        }
+        <span class="cov8" title="1">return string(out)</span>
+}
+
+func allSame(s string) bool <span class="cov8" title="1">{
+        for i := 1; i &lt; len(s); i++ </span><span class="cov8" title="1">{
+                if s[i] != s[0] </span><span class="cov8" title="1">{
+                        return false
+                }</span>
+        }
+        <span class="cov8" title="1">return true</span>
+}
+
+func validCPFCheckDigits(digits string) bool <span class="cov8" title="1">{
+        d := make([]int, 11)
+        for i, ch := range digits </span><span class="cov8" title="1">{
+                n, _ := strconv.Atoi(string(ch))
+                d[i] = n
+        }</span>
+
+        <span class="cov8" title="1">sum := 0
+        for i := 0; i &lt; 9; i++ </span><span class="cov8" title="1">{
+                sum += d[i] * (10 - i)
+        }</span>
+        <span class="cov8" title="1">r1 := (sum * 10) % 11
+        if r1 == 10 || r1 == 11 </span><span class="cov8" title="1">{
+                r1 = 0
+        }</span>
+        <span class="cov8" title="1">if r1 != d[9] </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">sum = 0
+        for i := 0; i &lt; 10; i++ </span><span class="cov8" title="1">{
+                sum += d[i] * (11 - i)
+        }</span>
+        <span class="cov8" title="1">r2 := (sum * 10) % 11
+        if r2 == 10 || r2 == 11 </span><span class="cov8" title="1">{
+                r2 = 0
+        }</span>
+        <span class="cov8" title="1">return r2 == d[10]</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package pixkey
+
+import (
+        "time"
+
+        "github.com/google/uuid"
+)
+
+type PixKey struct {
+        ID        string
+        AccountID string
+        Type      KeyType
+        Value     string
+        Status    KeyStatus
+        CreatedAt time.Time
+}
+
+func NewPixKey(accountID, keyType, keyValue string) (*PixKey, error) <span class="cov8" title="1">{
+        kt, err := ParseKeyType(keyType)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err := ValidateKeyValue(kt, keyValue); err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return &amp;PixKey{
+                ID:        uuid.NewString(),
+                AccountID: accountID,
+                Type:      kt,
+                Value:     keyValue,
+                Status:    Active,
+                CreatedAt: time.Now(),
+        }, nil</span>
+}
+
+func (k *PixKey) BelongsTo(accountID string) bool <span class="cov8" title="1">{
+        return k.AccountID == accountID
+}</span>
+
+func (k *PixKey) IsActive() bool <span class="cov8" title="1">{
+        return k.Status == Active
+}</span>
+
+func (k *PixKey) Deactivate() <span class="cov8" title="1">{
+        k.Status = Inactive
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package pixkey
+
+import (
+        "regexp"
+        "strings"
+)
+
+type KeyType string
+
+const (
+        CPF   KeyType = "CPF"
+        CNPJ  KeyType = "CNPJ"
+        Phone KeyType = "PHONE"
+        Email KeyType = "EMAIL"
+        EVP   KeyType = "EVP"
+)
+
+type KeyStatus string
+
+const (
+        Active   KeyStatus = "ACTIVE"
+        Inactive KeyStatus = "INACTIVE"
+)
+
+var (
+        reCPF   = regexp.MustCompile(`^\d{11}$`)
+        reCNPJ  = regexp.MustCompile(`^\d{14}$`)
+        rePhone = regexp.MustCompile(`^\+\d{10,13}$`)
+        reEmail = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+        reEVP   = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+)
+
+func ParseKeyType(s string) (KeyType, error) <span class="cov8" title="1">{
+        switch KeyType(strings.ToUpper(s)) </span>{
+        case CPF, CNPJ, Phone, Email, EVP:<span class="cov8" title="1">
+                return KeyType(strings.ToUpper(s)), nil</span>
+        default:<span class="cov8" title="1">
+                return "", ErrInvalidKeyType</span>
+        }
+}
+
+func ValidateKeyValue(kt KeyType, value string) error <span class="cov8" title="1">{
+        switch kt </span>{
+        case CPF:<span class="cov8" title="1">
+                if !reCPF.MatchString(value) </span><span class="cov8" title="1">{
+                        return ErrInvalidKeyValue
+                }</span>
+        case CNPJ:<span class="cov8" title="1">
+                if !reCNPJ.MatchString(value) </span><span class="cov8" title="1">{
+                        return ErrInvalidKeyValue
+                }</span>
+        case Phone:<span class="cov8" title="1">
+                if !rePhone.MatchString(value) </span><span class="cov8" title="1">{
+                        return ErrInvalidKeyValue
+                }</span>
+        case Email:<span class="cov8" title="1">
+                if !reEmail.MatchString(strings.ToLower(value)) </span><span class="cov8" title="1">{
+                        return ErrInvalidKeyValue
+                }</span>
+        case EVP:<span class="cov8" title="1">
+                if !reEVP.MatchString(strings.ToLower(value)) </span><span class="cov8" title="1">{
+                        return ErrInvalidKeyValue
+                }</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package transaction
+
+import (
+        "strings"
+        "time"
+
+        "github.com/google/uuid"
+
+        "go-api/internal/domain/account"
+)
+
+type PixTransaction struct {
+        ID                 string
+        PayerAccountID     string
+        ReceiverKey        string
+        ReceiverAccountID  string
+        Amount             account.Money
+        Status             TransactionStatus
+        Description        string
+        InitiatedAt        time.Time
+        CompletedAt        *time.Time
+        FailureReason      *string
+}
+
+func NewTransaction(payerAccountID, receiverKey, description string, amount account.Money) (*PixTransaction, error) <span class="cov8" title="1">{
+        if !amount.IsPositive() </span><span class="cov8" title="1">{
+                return nil, ErrInvalidAmount
+        }</span>
+
+        <span class="cov8" title="1">return &amp;PixTransaction{
+                ID:             uuid.NewString(),
+                PayerAccountID: payerAccountID,
+                ReceiverKey:    receiverKey,
+                Amount:         amount,
+                Status:         Pending,
+                Description:    strings.TrimSpace(description),
+                InitiatedAt:    time.Now(),
+        }, nil</span>
+}
+
+func (t *PixTransaction) StartProcessing() error <span class="cov8" title="1">{
+        if t.Status != Pending </span><span class="cov8" title="1">{
+                return ErrTransactionAlreadyProcessed
+        }</span>
+        <span class="cov8" title="1">t.Status = Processing
+        return nil</span>
+}
+
+func (t *PixTransaction) Complete(receiverAccountID string) error <span class="cov8" title="1">{
+        if t.Status != Processing </span><span class="cov8" title="1">{
+                return ErrInvalidTransactionStatus
+        }</span>
+        <span class="cov8" title="1">now := time.Now()
+        t.Status = Completed
+        t.ReceiverAccountID = receiverAccountID
+        t.CompletedAt = &amp;now
+        return nil</span>
+}
+
+func (t *PixTransaction) Fail(reason string) error <span class="cov8" title="1">{
+        if t.Status != Processing &amp;&amp; t.Status != Pending </span><span class="cov8" title="1">{
+                return ErrInvalidTransactionStatus
+        }</span>
+        <span class="cov8" title="1">now := time.Now()
+        t.Status = Failed
+        t.CompletedAt = &amp;now
+        t.FailureReason = &amp;reason
+        return nil</span>
+}
+
+func (t *PixTransaction) IsFinal() bool <span class="cov8" title="1">{
+        return t.Status == Completed || t.Status == Failed
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
