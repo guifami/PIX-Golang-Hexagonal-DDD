@@ -4,7 +4,7 @@ Simulação completa do sistema de pagamentos **PIX** implementada em Go com arq
 
 [![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![Gin](https://img.shields.io/badge/Gin-Web_Framework-008ECF?style=flat)](https://gin-gonic.com/)
-[![Kafka](https://img.shields.io/badge/Apache_Kafka-3.7-231F20?style=flat&logo=apache-kafka)](https://kafka.apache.org/)
+[![Kafka](https://img.shields.io/badge/Apache_Kafka-3.5-231F20?style=flat&logo=apache-kafka)](https://kafka.apache.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql)](https://www.postgresql.org/)
 [![Swagger](https://img.shields.io/badge/Swagger-OpenAPI-85EA2D?style=flat&logo=swagger)](http://localhost:8000/swagger/index.html)
 
